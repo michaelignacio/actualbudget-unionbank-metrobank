@@ -151,18 +151,13 @@ export function parseAllTransactions(ocrResult, lines) {
         const merchant = findMerchant(lineText);
         if (merchant) {
           let txDate = null;
-          let dateFound = false;
           
           for (let j = i + 1; j <= i + 3 && j < structuredLines.length; j++) {
             const d = findDateMonthDayYear(structuredLines[j].text);
-            if (d) { txDate = d; dateFound = true; break; }
-          }
-          if (!txDate && monthHeader) {
-            txDate = monthHeader;
-            dateFound = true;
+            if (d) { txDate = d; break; }
           }
           
-          if (txDate && dateFound) {
+          if (txDate) {
             const key = `${txDate.toISOString()}-${amount}-${merchant}`;
             if (!seen.has(key)) {
               seen.add(key);
