@@ -1,5 +1,5 @@
 {
-  "name": "actual-unionbank-metrobank",
+  "name": "actualbudget-unionbank-metrobank-import",
   "version": "1.0.0",
   "description": "Auto-import UnionBank and Metrobank transactions into Actual Budget",
   "type": "module",

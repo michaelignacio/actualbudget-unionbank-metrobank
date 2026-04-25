@@ -1,4 +1,4 @@
-# Actual UnionBank Metrobank
+# ActualBudget UnionBank Metrobank Import
 
 Auto-import transactions from UnionBank and Metrobank (Philippines) into self-hosted Actual Budget.
 
