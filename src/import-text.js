@@ -8,6 +8,8 @@ import path from 'path';
 const METROBANK_DIR = '/Users/michael/Sites/personal/actualbudget-extension/text-input/metrobank';
 const UNIONBANK_DIR = '/Users/michael/Sites/personal/actualbudget-extension/text-input/unionbank';
 
+const IMPORT_TIMEOUT = 60000;
+
 async function importFromText(bankDir, accountName) {
   const files = fs.readdirSync(bankDir).filter(f => f.endsWith('.txt'));
   console.log(`=== IMPORTING FROM ${accountName.toUpperCase()} ===\n`);
@@ -54,12 +56,24 @@ async function importFromText(bankDir, accountName) {
 }
 
 async function run() {
-  if (fs.existsSync(UNIONBANK_DIR)) {
-    await importFromText(UNIONBANK_DIR, 'UnionBank Main');
-  }
-  if (fs.existsSync(METROBANK_DIR)) {
-    await importFromText(METROBANK_DIR, 'Metrobank Savings');
+  try {
+    if (fs.existsSync(UNIONBANK_DIR)) {
+      await importFromText(UNIONBANK_DIR, 'UnionBank Main');
+    }
+    if (fs.existsSync(METROBANK_DIR)) {
+      await importFromText(METROBANK_DIR, 'Metrobank Savings');
+    }
+    console.log('\nImport complete!');
+    setTimeout(() => process.exit(0), 1000);
+  } catch (e) {
+    console.error('Error:', e.message);
+    process.exit(1);
   }
 }
 
 run();
+
+setTimeout(() => {
+  console.log('Timeout - exiting');
+  process.exit(0);
+}, IMPORT_TIMEOUT);

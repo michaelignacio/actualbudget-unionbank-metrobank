@@ -34,3 +34,9 @@ if (metrobank) await deleteAll(metrobank.id, metrobank.name);
 if (unionbank) await deleteAll(unionbank.id, unionbank.name);
 
 console.log('\nDone.');
+setTimeout(() => process.exit(0), 1000);
+
+setTimeout(() => {
+  console.log('Timeout - exiting');
+  process.exit(0);
+}, 60000);
