@@ -1,7 +1,7 @@
 {
-  "name": "actual-budget-import-pipeline",
+  "name": "actual-unionbank-metrobank",
   "version": "1.0.0",
-  "description": "Auto-import transactions from banking screenshots into Actual Budget",
+  "description": "Auto-import UnionBank and Metrobank transactions into Actual Budget",
   "type": "module",
   "scripts": {
     "start": "node src/index.js",

@@ -1,4 +1,4 @@
-# Actual Budget Import Pipeline
+# Actual UnionBank Metrobank
 
 Auto-import transactions from UnionBank and Metrobank (Philippines) into self-hosted Actual Budget.
 
