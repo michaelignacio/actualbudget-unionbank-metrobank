@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "import": "node src/import-text.js",
-    "delete": "node src/delete-all.js"
+    "delete": "node src/delete-all.js",
+    "clear-cache": "rm -f data/processed.json"
   },
   "dependencies": {
-    "@actual-app/api": "^24.12.0"
+    "@actual-app/api": "^26.4.0"
   },
   "engines": {
     "node": ">=18.0.0"
