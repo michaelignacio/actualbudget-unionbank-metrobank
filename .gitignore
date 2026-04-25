@@ -2,9 +2,6 @@ node_modules/
 dist/
 build/
 
-screenshots/
-!screenshots/sample_*
-
 data/
 logs/
 *.log
@@ -23,3 +20,6 @@ eng.traineddata*
 *.traineddata
 
 config.json
+
+text-input/
+My-Finances-*/
