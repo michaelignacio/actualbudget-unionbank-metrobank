@@ -1,0 +1,19 @@
+{
+  "name": "actual-budget-import-pipeline",
+  "version": "1.0.0",
+  "description": "Auto-import transactions from banking screenshots into Actual Budget",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "watch": "node src/watcher.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "dependencies": {
+    "tesseract.js": "^5.1.1",
+    "chokidar": "^3.6.0",
+    "sharp": "^0.33.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
