@@ -6,15 +6,15 @@ import fs from 'fs';
 import path from 'path';
 
 const METROBANK_DIR = '/Users/michael/Sites/personal/actualbudget-extension/text-input/metrobank';
+const UNIONBANK_DIR = '/Users/michael/Sites/personal/actualbudget-extension/text-input/unionbank';
 
-async function importFromText() {
-  console.log('=== IMPORTING FROM TEXT FILES ===\n');
-  
-  const files = fs.readdirSync(METROBANK_DIR).filter(f => f.endsWith('.txt'));
+async function importFromText(bankDir, accountName) {
+  const files = fs.readdirSync(bankDir).filter(f => f.endsWith('.txt'));
+  console.log(`=== IMPORTING FROM ${accountName.toUpperCase()} ===\n`);
   console.log(`Found ${files.length} text files\n`);
   
   for (const file of files) {
-    const filePath = path.join(METROBANK_DIR, file);
+    const filePath = path.join(bankDir, file);
     console.log(`Processing: ${file}`);
     
     const transactions = parseTextFile(filePath);
@@ -41,7 +41,7 @@ async function importFromText() {
       };
       
       try {
-        await importTransaction(formatted, 'Metrobank Savings');
+        await importTransaction(formatted, accountName);
         console.log(`  [OK] ${tx.date} | Php${tx.amount} | ${tx.payee}`);
         markAsProcessed(formatted, importedId, 'imported');
       } catch (e) {
@@ -53,4 +53,13 @@ async function importFromText() {
   }
 }
 
-importFromText();
+async function run() {
+  if (fs.existsSync(UNIONBANK_DIR)) {
+    await importFromText(UNIONBANK_DIR, 'UnionBank Main');
+  }
+  if (fs.existsSync(METROBANK_DIR)) {
+    await importFromText(METROBANK_DIR, 'Metrobank Savings');
+  }
+}
+
+run();

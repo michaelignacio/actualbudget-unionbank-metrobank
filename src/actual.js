@@ -58,12 +58,15 @@ export async function createTransaction(accountId, transaction) {
   const payload = {
     account: accountId,
     date: transaction.date,
-    amount: -transaction.amount * 1000,
+    amount: Math.round(transaction.amount * 100),
     payee_name: transaction.payee,
-    category: categoryId,
     cleared: transaction.cleared || false,
     imported_id: transaction.imported_id
   };
+  
+  if (categoryId) {
+    payload.category = categoryId;
+  }
 
   console.log('[ACTUAL] Creating transaction:', JSON.stringify(payload, null, 2));
 
