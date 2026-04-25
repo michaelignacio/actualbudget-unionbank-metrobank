@@ -35,7 +35,7 @@ Get account/category IDs from Actual Budget's developer tools (Settings → Adva
 
 ### Import Transactions
 
-Place text files in:
+Copy-paste your transaction history from your online banking account and save as `.txt` files in:
 - `text-input/unionbank/` - UnionBank transaction text
 - `text-input/metrobank/` - Metrobank transaction text
 
@@ -47,12 +47,14 @@ node src/import-text.js
 
 ### Text Formats
 
-**UnionBank** (copy-paste from online banking):
+Copy-paste from your online banking account:
+
+**UnionBank**:
 ```
 MM/DD/YYYY | DESCRIPTION | PHP 1,234.56
 ```
 
-**Metrobank** (copy-paste from online banking):
+**Metrobank**:
 ```
 DESCRIPTION | MM/DD/YYYY | PHP 1,234.56
 ```
