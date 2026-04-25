@@ -4,15 +4,11 @@
   "description": "Auto-import UnionBank and Metrobank transactions into Actual Budget",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js",
-    "watch": "node src/watcher.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "import": "node src/import-text.js",
+    "delete": "node src/delete-all.js"
   },
   "dependencies": {
-    "@actual-app/api": "^24.12.0",
-    "chokidar": "^3.6.0",
-    "sharp": "^0.33.5",
-    "tesseract.js": "^5.1.1"
+    "@actual-app/api": "^24.12.0"
   },
   "engines": {
     "node": ">=18.0.0"
