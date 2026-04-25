@@ -94,7 +94,7 @@ function findMerchant(text) {
   if (phpMatch) {
     candidate = candidate.replace(phpMatch[0], '').trim();
   }
-  candidate = candidate.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  candidate = candidate.replace(/[^\w\s&]/g, ' ').replace(/\s+/g, ' ').trim();
   
   if (candidate.length >= 2 && candidate.length < 40) {
     return candidate;
