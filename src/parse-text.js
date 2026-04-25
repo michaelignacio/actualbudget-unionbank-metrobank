@@ -6,7 +6,7 @@ export function parseTextFile(filePath) {
   const lines = content.split('\n').map(l => l.trim().replace(/\t/g, ' ')).filter(l => l);
   
   const dir = path.dirname(filePath);
-  const bankType = dir.includes('metrobank') ? 'metrobank' : dir.includes('unionbank') ? 'unionbank' : null;
+  const bankType = dir.indexOf('metrobank') !== -1 ? 'metrobank' : dir.indexOf('unionbank') !== -1 ? 'unionbank' : null;
   
   if (bankType === 'unionbank') return parseUnionBankText(lines);
   if (bankType === 'metrobank') return parseMetrobankText(lines);
@@ -23,27 +23,43 @@ function parseUnionBankText(lines) {
     const monthMatch = line.match(/^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*\s+\d{4}$/i);
     if (monthMatch) {
       const monthNames = {JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11};
-      currentMonth = new Date(parseInt(monthMatch[2]), monthNames[monthMatch[1].toUpperCase().substring(0,3)], 1);
+      const monthName = monthMatch[0].toUpperCase().substring(0,3);
+      const year = parseInt(line.match(/\d{4}/)[0]);
+      currentMonth = new Date(year, monthNames[monthName], 1);
       continue;
     }
     
-    if (!line.startsWith('PHP') || line.includes('PENDING')) continue;
+    if (line.indexOf("PENDING") !== -1) continue;
     
-    const amount = parseFloat(line.match(/PHP\s*([\d,]+\.?\d*)/i)?.[1]?.replace(/,/g, '') || '0');
+    const amountMatch = line.match(/^(-?\s*PHP\s*[\d,]+\.?\d*)$/i);
+    if (!amountMatch) continue;
+    
+    const amountStr = amountMatch[1].replace(/PHP\s*/i, '').replace(/,/g, '').trim();
+    const amount = parseFloat(amountStr);
     if (amount <= 0) continue;
     
-    let merchant = null, date = currentMonth;
-    for (let j = i - 1; j >= 0 && j >= i - 3; j--) {
+    let merchant = null, date = null;
+    
+    for (let j = i - 1; j >= 0 && j >= i - 2; j--) {
       const prev = lines[j];
-      if (!date?.getTime()) {
-        const dm = prev.match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*\s+(\d{1,2}),?\s*(\d{4})/i);
-        if (dm) date = new Date(parseInt(dm[3]), {JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11}[dm[1].toUpperCase().substring(0,3)], parseInt(dm[2]));
+      
+      if (!date) {
+        const dm = prev.match(/([A-Z][a-z]{2})\s+(\d{1,2}),?\s*(\d{4})/i);
+        if (dm) {
+          const monthNames = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+          date = new Date(parseInt(dm[3]), monthNames[dm[1]], parseInt(dm[2]));
+        }
       }
-      if (!merchant && prev.length > 1 && !prev.match(/^PHP/i) && !prev.match(/^[A-Z]{3}\s\d{4}/i)) {
-        merchant = prev.replace(/[^\w\s&]/g, ' ').replace(/\s+/g, ' ').trim();
+      
+      if (!merchant && prev.length > 2 && prev.indexOf("PHP") === -1 && !prev.match(/^[A-Z][a-z]{2}\s+\d+/i)) {
+        merchant = prev.replace(/[^\w\s&,]/g, ' ').replace(/\s+/g, ' ').trim();
       }
+      
       if (merchant && date) break;
     }
+    
+    if (!date && currentMonth) date = currentMonth;
+    
     if (merchant && date) transactions.push({date: formatDate(date), amount, payee: merchant});
   }
   return transactions;
@@ -55,7 +71,7 @@ function parseMetrobankText(lines) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const amount = parseFloat(line.match(/PHP\s*\(?([\d,.]+)/i)?.[1]?.replace(/,/g, '') || '0');
-    if (!line.includes('PHP') || amount <= 0) continue;
+    if (line.indexOf("PHP") === -1 || amount <= 0) continue;
     
     let merchant = null, date = null;
     
@@ -69,7 +85,10 @@ function parseMetrobankText(lines) {
       }
     }
     
-    if (merchant && date) transactions.push({date: formatDate(date), amount: Math.abs(amount), payee: merchant});
+    if (merchant && date) {
+      const isDeposit = merchant.toUpperCase().indexOf("CASH PAYMENT") !== -1;
+      transactions.push({date: formatDate(date), amount: Math.abs(amount), payee: merchant, isDeposit});
+    }
   }
   return transactions;
 }

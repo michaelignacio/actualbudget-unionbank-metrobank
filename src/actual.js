@@ -1,89 +1,75 @@
-import fs from 'fs';
-import { CONFIG_FILE } from './constants.js';
+import pkg from '@actual-app/api';
+const { init, getAccounts, getCategories, addTransactions, downloadBudget, loadBudget } = pkg;
+import { loadConfig } from './constants.js';
 
-let config = null;
+let initialized = false;
+let apiConfig = null;
+let categoryCache = null;
 
-export function loadConfig() {
-  if (!config) {
-    const raw = fs.readFileSync(CONFIG_FILE, 'utf8');
-    config = JSON.parse(raw);
+async function ensureInitialized() {
+  if (initialized) return;
+  
+  apiConfig = loadConfig();
+  const { serverUrl, password, syncId, budgetId } = apiConfig.actual;
+  
+  await init({ serverURL: serverUrl, password });
+  
+  if (syncId) {
+    await downloadBudget(syncId, { password });
   }
-  return config;
+  if (budgetId) {
+    await loadBudget(budgetId);
+  }
+  
+  const categories = await getCategories();
+  categoryCache = categories.reduce((acc, c) => {
+    acc[c.name.toLowerCase()] = c.id;
+    return acc;
+  }, {});
+  
+  initialized = true;
 }
 
-export async function fetchAccounts() {
-  const cfg = loadConfig();
-  const { serverUrl, password, encryptionKey } = cfg.actual;
+export async function getAccountsList() {
+  await ensureInitialized();
+  return await getAccounts();
+}
 
-  const response = await fetch(`${serverUrl}/api/budgets`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${password}`,
-      'Content-Type': 'application/json'
+export function getCategoryId(merchant) {
+  if (!merchant || !categoryCache) return null;
+  
+  const merchantLower = merchant.toLowerCase();
+  const cfg = loadConfig();
+  const mapping = cfg.categories || {};
+  
+  for (const [key, categoryName] of Object.entries(mapping)) {
+    if (merchantLower.includes(key.toLowerCase())) {
+      return categoryCache[categoryName?.toLowerCase()];
     }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch budgets: ${response.status}`);
   }
-
-  const data = await response.json();
-  return data.budgets || [];
+  return null;
 }
 
-export async function getAccounts(budgetId) {
-  const cfg = loadConfig();
-  const { serverUrl, password } = cfg.actual;
-
-  const response = await fetch(`${serverUrl}/api/budget/${budgetId}/accounts`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${password}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch accounts: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data || [];
-}
-
-export async function createTransaction(budgetId, accountId, transaction) {
-  const cfg = loadConfig();
-  const { serverUrl, password } = cfg.actual;
-
+export async function createTransaction(accountId, transaction) {
+  await ensureInitialized();
+  
+  const categoryId = getCategoryId(transaction.payee);
+  
   const payload = {
     account: accountId,
     date: transaction.date,
     amount: -transaction.amount * 1000,
-    payee: transaction.payee,
-    notes: transaction.notes || '',
+    payee_name: transaction.payee,
+    category: categoryId,
     cleared: transaction.cleared || false,
-    imported_id: transaction.imported_id,
-    flags: 0
+    imported_id: transaction.imported_id
   };
 
   console.log('[ACTUAL] Creating transaction:', JSON.stringify(payload, null, 2));
 
-  const response = await fetch(`${serverUrl}/api/budget/${budgetId}/transactions`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${password}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to create transaction: ${response.status} - ${error}`);
-  }
-
-  const result = await response.json();
-  console.log('[ACTUAL] Transaction created:', result.id);
+  const result = await addTransactions(accountId, [payload]);
+  console.log('[ACTUAL] Result:', result);
+  
   return result;
 }
 
@@ -104,20 +90,14 @@ export function mapAccount(accounts, accountName) {
 }
 
 export async function importTransaction(transactionData, accountName) {
-  const cfg = loadConfig();
-  const budgetId = cfg.actual.budgetId || 'default';
-
-  const accounts = await getAccounts(budgetId);
+  await ensureInitialized();
+  
+  const accounts = await getAccountsList();
   const accountId = mapAccount(accounts, accountName);
 
   if (!accountId) {
     throw new Error(`No account mapping found for: ${accountName}`);
   }
 
-  const txWithAccount = {
-    ...transactionData,
-    accountId
-  };
-
-  return await createTransaction(budgetId, accountId, txWithAccount);
+  return await createTransaction(accountId, transactionData);
 }

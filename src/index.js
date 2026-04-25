@@ -6,8 +6,8 @@ import { recognizeText } from './ocr.js';
 import { parseOCRResult, formatTransaction } from './parser.js';
 import { computeConfidence, getAction } from './confidence.js';
 import { generateImportedId, isDuplicate, markAsProcessed } from './dedupe.js';
-import { loadConfig, importTransaction } from './actual.js';
-import { SCREENSHOTS_DIR, PROCESSED_DIR, FAILED_DIR, LOGS_DIR } from './constants.js';
+import { importTransaction } from './actual.js';
+import { loadConfig, SCREENSHOTS_DIR, PROCESSED_DIR, FAILED_DIR, LOGS_DIR } from './constants.js';
 
 const SUPPORTED_EXTENSIONS = ['.png', '.jpg', '.jpeg'];
 

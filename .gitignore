@@ -21,3 +21,5 @@ Thumbs.db
 
 eng.traineddata*
 *.traineddata
+
+config.json
